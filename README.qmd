@@ -25,7 +25,7 @@ Install the packages as follows:
 ```{r}
 #| label: install-packages-2
 #| eval: false
-pak::pak(pkgs, upgrade = FALSE)
+pak::pak(pkgs, upgrade = TRUE)
 ```
 
 We'll load the packages as follows:
@@ -132,6 +132,20 @@ st_andrews_ze = left_join(
 st_andrews_ze |>
   select(n_points) |> 
   plot()
+st_andrews_ze |> 
+  mutate(
+    alpha = case_when(
+      is.na(n_points) ~ 0,
+      TRUE ~ 0.3
+    )
+  ) |> 
+tm_shape() +
+  tm_polygons(
+    fill = "n_points",
+    fill.scale = tm_scale_continuous(value.na = "red"),
+    fill_alpha = "alpha",
+    fill_alpha.scale = tm_scale_continuous(values.range = c(0, 0.3)),
+  )
 ```
 
 ## Challenge 3: Generate and explore spatial interaction models for St Andrews
