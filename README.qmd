@@ -1,0 +1,19 @@
+---
+format: gfm
+title: "Origin destination datasets and spatial interaction models"
+---
+
+```{r}
+#| label: install-packages
+if (!requireNamespace("pak", quietly = TRUE)) {
+  install.packages("pak")
+}
+pkgs = c(
+  "osmextract",
+  "tidyverse",
+  "spanishoddata"
+)
+pak::pak(pkgs, upgrade = FALSE)
+```
+
+
