@@ -11,9 +11,19 @@ if (!requireNamespace("pak", quietly = TRUE)) {
 pkgs = c(
   "osmextract",
   "tidyverse",
-  "spanishoddata"
+#   "spanishoddata",
+  "od",
+  "simodels"
 )
 pak::pak(pkgs, upgrade = FALSE)
+```
+
+We'll use the `osmextract` package to download OpenStreetMap data for St Andrews.
+Set the `osmextract` download directory if it's not already set.
+
+```{r}
+# usethis::edit_r_environ()
+Sys.getenv()
 ```
 
 
