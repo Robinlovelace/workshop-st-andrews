@@ -57,31 +57,13 @@ pak::pak("nptscot/osmactive")
 
      
 
-    → Will update 1 package.
-
-    → The package (0 B) is cached.
-
-    + osmactive 0.0.0.9000 → 0.0.0.9000 [bld][cmp] (GitHub: 2386aa3)
-
     ✔ All system requirements are already installed.
 
       
 
-    ℹ No downloads are needed, 1 pkg is cached
+    ℹ No downloads are needed
 
-    ✔ Got osmactive 0.0.0.9000 (source) (3.73 MB)
-
-    ℹ Packaging osmactive 0.0.0.9000
-
-    ✔ Packaged osmactive 0.0.0.9000 (333ms)
-
-    ℹ Building osmactive 0.0.0.9000
-
-    ✔ Built osmactive 0.0.0.9000 (1.1s)
-
-    ✔ Installed osmactive 0.0.0.9000 (github::nptscot/osmactive@2386aa3) (1s)
-
-    ✔ 1 pkg + 53 deps: kept 44, upd 1, dld 1 (NA B) [8.4s]
+    ✔ 1 pkg + 53 deps: kept 45 [3.3s]
 
 And let’s switch tmap to interactive plotting mode:
 
@@ -231,3 +213,122 @@ plot(osm_points)
     all
 
 ![](README_files/figure-commonmark/unnamed-chunk-8-1.png)
+
+``` r
+st_andrews_n_points = osm_points |>
+  sf::st_join(st_andrews_zones) |>
+  sf::st_drop_geometry() |>
+  group_by(label) |>
+  summarise(
+    n_points = n()
+  )
+st_andrews_ze = left_join(
+  st_andrews_zones,
+  st_andrews_n_points
+) 
+```
+
+    Joining with `by = join_by(label)`
+
+``` r
+st_andrews_ze |>
+  select(n_points) |> 
+  plot()
+```
+
+![](README_files/figure-commonmark/unnamed-chunk-8-2.png)
+
+## Challenge 3: Generate and explore spatial interaction models for St Andrews
+
+Run the code below, play with the inputs and try to generate a more
+realistic SIM (see the documentation for the `simodels` R package)
+
+``` r
+od = simodels::si_to_od(
+  origins = st_andrews_ze,
+  destinations = st_andrews_ze
+)
+```
+
+    Converting p to centroids
+
+``` r
+plot(od)
+```
+
+![](README_files/figure-commonmark/unnamed-chunk-9-1.png)
+
+``` r
+names(od)
+```
+
+     [1] "O"                      "D"                      "distance_euclidean"    
+     [4] "origin_circle_id"       "origin_segment_id"      "origin_n_points"       
+     [7] "destination_circle_id"  "destination_segment_id" "destination_n_points"  
+    [10] "geometry"              
+
+``` r
+summary(od)
+```
+
+          O                  D             distance_euclidean origin_circle_id
+     Length:1369        Length:1369        Min.   :    0      Min.   :1.000   
+     Class :character   Class :character   1st Qu.: 4129      1st Qu.:2.000   
+     Mode  :character   Mode  :character   Median : 6530      Median :3.000   
+                                           Mean   : 6805      Mean   :2.946   
+                                           3rd Qu.: 9274      3rd Qu.:4.000   
+                                           Max.   :16113      Max.   :4.000   
+                                                                              
+     origin_segment_id origin_n_points  destination_circle_id
+     Min.   : 0.000    Min.   :  20.0   Min.   :1.000        
+     1st Qu.: 3.000    1st Qu.:  70.0   1st Qu.:2.000        
+     Median : 6.000    Median : 166.0   Median :3.000        
+     Mean   : 6.324    Mean   : 235.7   Mean   :2.946        
+     3rd Qu.: 9.000    3rd Qu.: 322.0   3rd Qu.:4.000        
+     Max.   :12.000    Max.   :1065.0   Max.   :4.000        
+                       NA's   :407                           
+     destination_segment_id destination_n_points          geometry   
+     Min.   : 0.000         Min.   :  20.0       LINESTRING   :1369  
+     1st Qu.: 3.000         1st Qu.:  70.0       epsg:4326    :   0  
+     Median : 6.000         Median : 166.0       +proj=long...:   0  
+     Mean   : 6.324         Mean   : 235.7                           
+     3rd Qu.: 9.000         3rd Qu.: 322.0                           
+     Max.   :12.000         Max.   :1065.0                           
+                            NA's   :407                              
+
+``` r
+gravity_model = function(beta, d, m, n) {
+  m * n * exp(-beta * d / 1000)
+} 
+# perform SIM
+od_res = si_calculate(
+  od,
+  fun = gravity_model,
+  d = distance_euclidean,
+  m = origin_n_points,
+  n = destination_n_points,
+  beta = 1.5
+)
+```
+
+``` r
+od_res |> 
+  select(interaction) |> 
+  arrange(interaction) |>
+  plot(logz = TRUE, lwd = log(od_res$interaction))
+```
+
+![](README_files/figure-commonmark/unnamed-chunk-12-1.png)
+
+## Challenge 4: Downloading large OD datasets with `spanishoddata` R package
+
+Check out the documentation of the package and try to download some data
+showing
+
+- Flows between Madrid and Barcelona
+- Flow between Madrid and Valencia
+- Flows between Barcelona and Valencia
+
+Which has the most flows?
+
+Come up with some research questions and explore them

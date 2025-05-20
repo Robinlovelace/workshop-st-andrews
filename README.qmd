@@ -118,4 +118,69 @@ osm_points = oe_get(
   layer = "points"
 )
 plot(osm_points)
+st_andrews_n_points = osm_points |>
+  sf::st_join(st_andrews_zones) |>
+  sf::st_drop_geometry() |>
+  group_by(label) |>
+  summarise(
+    n_points = n()
+  )
+st_andrews_ze = left_join(
+  st_andrews_zones,
+  st_andrews_n_points
+) 
+st_andrews_ze |>
+  select(n_points) |> 
+  plot()
 ```
+
+## Challenge 3: Generate and explore spatial interaction models for St Andrews
+
+Run the code below, play with the inputs and try to generate a more realistic SIM (see the documentation for the `simodels` R package)
+
+```{r}
+od = simodels::si_to_od(
+  origins = st_andrews_ze,
+  destinations = st_andrews_ze
+)
+plot(od)
+```
+
+```{r}
+names(od)
+summary(od)
+```
+
+```{r}
+gravity_model = function(beta, d, m, n) {
+  m * n * exp(-beta * d / 1000)
+} 
+# perform SIM
+od_res = si_calculate(
+  od,
+  fun = gravity_model,
+  d = distance_euclidean,
+  m = origin_n_points,
+  n = destination_n_points,
+  beta = 1.5
+)
+```
+
+```{r}
+od_res |> 
+  select(interaction) |> 
+  arrange(interaction) |>
+  plot(logz = TRUE, lwd = log(od_res$interaction))
+```
+
+## Challenge 4: Downloading large OD datasets with `spanishoddata` R package
+
+Check out the documentation of the package and try to download some data showing
+
+- Flows between Madrid and Barcelona
+- Flow between Madrid and Valencia
+- Flows between Barcelona and Valencia
+
+Which has the most flows?
+
+Come up with some research questions and explore them
