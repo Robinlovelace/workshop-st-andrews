@@ -9,21 +9,64 @@ if (!requireNamespace("pak", quietly = TRUE)) {
   install.packages("pak")
 }
 pkgs = c(
+  "sf",
   "osmextract",
   "tidyverse",
 #   "spanishoddata",
   "od",
-  "simodels"
+  "simodels",
+  "zonebuilder",
+  "tmap"
 )
+```
+
+Install the packages as follows:
+
+```{r}
+#| label: install-packages-2
+#| eval: false
 pak::pak(pkgs, upgrade = FALSE)
 ```
 
-We'll use the `osmextract` package to download OpenStreetMap data for St Andrews.
-Set the `osmextract` download directory if it's not already set.
+We'll load the packages as follows:
 
 ```{r}
-# usethis::edit_r_environ()
-Sys.getenv()
+purrr::walk(pkgs, library, character.only = TRUE)
 ```
 
+And let's switch tmap to interactive plotting mode:
 
+```{r}
+tmap_mode("view")
+```
+
+We'll use the `osmextract` package to download OpenStreetMap data for St Andrews. Set the `osmextract` download directory if it's not already set.
+
+```{r}
+# ?oe_download_directory
+# usethis::edit_r_environ()
+Sys.getenv("OSMEXT_DOWNLOAD_DIRECTORY")
+```
+
+Let's get a polygon representing St Andrews and its surroundings
+
+```{r}
+#| label: st-andrews-polygon
+# Radius of circles is 1, 3, 6, 10 km
+st_andrews_zones = zb_zone("St Andrews", n_circles = 4)
+names(st_andrews_zones)
+st_andrews_zones = st_andrews_zones |>
+  select(label, circle_id, segment_id)
+plot(st_andrews_zones)
+```
+
+Let's check the zones are in the right place with an interactive plot:
+
+```{r}
+#| label: st-andrews-zones-interactive
+#| eval: false
+tm_shape(st_andrews_zones) +
+  tm_polygons("circle_id", alpha = 0.3)
+```
+
+![](images/clipboard-855988838.png)
