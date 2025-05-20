@@ -34,6 +34,12 @@ We'll load the packages as follows:
 purrr::walk(pkgs, library, character.only = TRUE)
 ```
 
+We'll also install the `osmactive` package:
+
+```{r}
+pak::pak("nptscot/osmactive")
+```
+
 And let's switch tmap to interactive plotting mode:
 
 ```{r}
@@ -70,3 +76,46 @@ tm_shape(st_andrews_zones) +
 ```
 
 ![](images/clipboard-855988838.png)
+
+```{r}
+st_andrews_region = sf::st_union(st_andrews_zones)
+st_andrews_osm = oe_get("Scotland", boundary = st_andrews_region, boundary_type = "clipsrc")
+```
+
+```{r}
+st_andrews_osm |> 
+  sf::st_geometry() |>
+  plot()
+```
+
+We can get more specific bits of OSM with the `osmextract` package as follows:
+
+```{r}
+
+```
+
+# Challenges
+
+## Challenge 1: Obtaining population data for St Andrews
+
+1. Obtain population estimates from the 2021 Census at the small area level and download them onto your computer
+1. Import them into R
+1. Download and import corresponding boundary data
+1. Subset the the census population data to the St Andrews study area 
+1. Join the population data with the boundary data
+1. Plot the total number of people living in each administrative zone in the surroundings of St Andrews
+1. Plot the population density in each administrative zone in the surroundings of St Andrews
+1. Use a spatial join function (e.g. `st_join()` in `sf` or `sjoin()` in `geopandas`) to join the population data with the `st_andrews_zones` dataset and plot the results
+
+## Challenge 2: Getting trip attractors for St Andrews
+
+1. Generate, explore and describe a dataset representing trip attractors in and around St Andrews
+
+```{r}
+osm_points = oe_get(
+  "Scotland",
+  boundary = st_andrews_region,
+  layer = "points"
+)
+plot(osm_points)
+```
